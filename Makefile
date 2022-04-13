@@ -5,9 +5,11 @@ O_REPO = main
 # OPKG Sources
 CFFI_SRC = https://download.ni.com/ni-linux-rt/feeds/$(O_YEAR)/arm/$(O_REPO)/$(O_ARCH)/libffi6_3.2.1-r0.465_$(O_ARCH).ipk
 
-BUILDDR = _build
+CWD = $(shell pwd)
+
+BUILDDR = $(CWD)/_build
 BINDIR = $(BUILDDR)/bin
-DISTDIR = _dist
+DISTDIR = $(CWD)/_dist
 
 # Specific files
 CFFI_PKG = ${BUILDDR}/libffi-latest.ipk
