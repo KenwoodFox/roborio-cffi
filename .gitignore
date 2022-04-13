@@ -1,7 +1,6 @@
-/data
-/devdata
-/prefix
-/OpenBLAS*
-
 *.gz
 *.whl
+*.xz
+
+_build
+_dist

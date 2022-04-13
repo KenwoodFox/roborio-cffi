@@ -1,48 +1,41 @@
+O_ARCH = cortexa9-vfpv3
+O_YEAR = 2021.0
+O_REPO = main
 
-VERSION = 0.3.19
+# OPKG Sources
+CFFI_SRC = https://download.ni.com/ni-linux-rt/feeds/$(O_YEAR)/arm/$(O_REPO)/$(O_ARCH)/libffi6_3.2.1-r0.465_$(O_ARCH).ipk
 
-BINRELEASE = https://github.com/xianyi/OpenBLAS/releases/download/v$(VERSION)/OpenBLAS-$(VERSION).tar.gz
-LIBGZIP = $(abspath $(notdir ${BINRELEASE}))
-SRCDIR = OpenBLAS-$(VERSION)
+BUILDDR = _build
+BINDIR = $(BUILDDR)/bin
+DISTDIR = _dist
 
-FC=arm-frc2022-linux-gnueabi-gfortran
-CC=arm-frc2022-linux-gnueabi-gcc
-
-MAKE_OPTIONS=FC=$(FC) CC=$(CC) HOSTCC=gcc \
-		TARGET=CORTEXA9 ARM_SOFTFP_ABI=1 \
-		NUM_CORES=2 USE_OPENMP=0 MAX_STACK_ALLOC=256 \
-		PREFIX=/usr/local DESTDIR=../prefix \
-		QUIET_MAKE=1
+# Specific files
+CFFI_PKG = ${BUILDDR}/libffi-latest.ipk
 
 all: package
 
-${LIBGZIP}:
-	wget ${BINRELEASE}
+.PHONY: fetch
+fetch:
+	mkdir -p ${BINDIR}
 
-${SRCDIR}: ${LIBGZIP}
-	tar -xf ${LIBGZIP}
-	cd $(SRCDIR) && patch -p1 < ../arm-buffersize.patch
-
-.PHONY: compile
-compile: ${SRCDIR}
-	rm -rf prefix
-	cd ${SRCDIR} && make $(MAKE_OPTIONS)
-	cd ${SRCDIR} && make $(MAKE_OPTIONS) install
+	wget ${CFFI_SRC} -O ${CFFI_PKG}
 
 .PHONY: package
-package: compile
-	rm -rf data devdata
+package: fetch
+	ar x ${CFFI_PKG} --output ${BUILDDR}
+	tar -xvf ${BUILDDR}/*.xz -C ${BUILDDR}
+	# Dont crack control data for rn
 
-	# create release package
-	mkdir -p data/usr/local/lib
-	cp -L prefix/usr/local/lib/libopenblas.so.0 data/usr/local/lib/libopenblas.so.0
-	roborio-gen-whl data.py data -o dist
-	
-	# create development package
-	mkdir -p devdata/usr/local/lib 
-	cp -r prefix/usr/local/include devdata/usr/local/include
-	cp -r prefix/usr/local/lib/pkgconfig devdata/usr/local/lib/pkgconfig
-	cp -r prefix/usr/local/lib/cmake devdata/usr/local/lib/cmake
-	cp -L prefix/usr/local/lib/libopenblas.so devdata/usr/local/lib/libopenblas.so
-	cp -L prefix/usr/local/lib/libopenblas.a devdata/usr/local/lib/libopenblas.a
-	roborio-gen-whl --dev data.py devdata -o dist
+	mkdir -p ${BINDIR}/usr/local/lib
+	cp -rH ${BUILDDR}/usr/lib/* ${BINDIR}/usr/local/lib
+
+	# This file causes errors with roborio-gen-whl, TODO: Find out why.
+	rm ${BINDIR}/usr/local/lib/libffi.so.6.0.4
+
+	# Create release
+	roborio-gen-whl data.py ${BINDIR} -o ${DISTDIR}
+
+	# Create dev (todo)
+
+clean:
+	git clean -fdX

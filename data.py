@@ -1,8 +1,5 @@
-name = "robotpy-openblas"
-version = "0.3.19+r1"
-url = "https://www.openblas.net"
+name = "robotpy-cffi"
+version = "1.15.0"
+url = "https://cffi.readthedocs.io/en/latest/"
 license = "BSD"
-install_requires = ["robotpy-libgfortran4"]
-
-# dev install requires libgfortran-dev, but that's included with the
-# fortran compiler
+install_requires = []
