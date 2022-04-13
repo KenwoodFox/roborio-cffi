@@ -1,4 +1,4 @@
-OpenBLAS wheel builder
+cffi wheel builder
 ======================
 
-Packages OpenBLAS in a wheel for installation on the RoboRIO
+Packages cffi in a wheel for installation on the RoboRIO (uses the NI opkg source)
